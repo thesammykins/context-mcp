@@ -1,5 +1,9 @@
 # Agent Progress Tracker MCP Server
 
+[![npm version](https://img.shields.io/npm/v/@thesammykins/agent-progress-mcp.svg)](https://www.npmjs.com/package/@thesammykins/agent-progress-mcp)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![GitHub](https://img.shields.io/badge/GitHub-thesammykins/context--mcp-blue)](https://github.com/thesammykins/context-mcp)
+
 An MCP (Model Context Protocol) server that enables AI agents to track, search, and retrieve their progress across projects. Provides persistent memory and context sharing for multi-step or multi-agent workflows.
 
 ## Features
@@ -17,13 +21,13 @@ An MCP (Model Context Protocol) server that enables AI agents to track, search, 
 ### NPM Package Install
 
 ```bash
-npm install -g @your-org/agent-progress-mcp
+npm install -g @thesammykins/agent-progress-mcp
 ```
 
 ### Development Install
 
 ```bash
-git clone <repository-url>
+git clone https://github.com/thesammykins/context-mcp.git
 cd agent-progress-mcp
 npm install
 npm run build
@@ -75,12 +79,16 @@ Add to your Claude Desktop `claude_desktop_config.json`:
     "agent-progress": {
       "command": "agent-progress-mcp",
       "env": {
-        "OPENAI_API_KEY": "your-api-key-here"
+        "OPENAI_API_KEY": "your-api-key-here",
+        "OPENAI_BASE_URL": "https://api.openai.com/v1",
+        "AGENT_PROGRESS_MODEL": "gpt-4o-mini"
       }
     }
   }
 }
 ```
+
+**Note**: Only `OPENAI_API_KEY` is required. The other environment variables are optional and will use defaults if not specified.
 
 ### Cursor
 
@@ -94,18 +102,78 @@ Add to your Cursor settings:
       "command": "agent-progress-mcp",
       "args": [],
       "env": {
-        "OPENAI_API_KEY": "your-api-key-here"
+        "OPENAI_API_KEY": "your-api-key-here",
+        "OPENAI_BASE_URL": "https://api.openai.com/v1",
+        "AGENT_PROGRESS_MODEL": "gpt-4o-mini"
       }
     }
   ]
 }
 ```
 
+**Note**: Only `OPENAI_API_KEY` is required. The other environment variables are optional and will use defaults if not specified.
+
 ### MCP CLI
 
 ```bash
 export OPENAI_API_KEY=your-api-key-here
+export OPENAI_BASE_URL=https://api.openai.com/v1
+export AGENT_PROGRESS_MODEL=gpt-4o-mini
 mcp run agent-progress-mcp
+```
+
+**Note**: Only `OPENAI_API_KEY` is required. The other environment variables are optional and will use defaults if not specified.
+
+### Alternative OpenAI-Compatible Providers
+
+The server works with any OpenAI-compatible API. Here are examples for popular providers:
+
+#### Anthropic Claude API
+```json
+{
+  "mcpServers": {
+    "agent-progress": {
+      "command": "agent-progress-mcp",
+      "env": {
+        "OPENAI_API_KEY": "your-anthropic-api-key",
+        "OPENAI_BASE_URL": "https://api.anthropic.com/v1",
+        "AGENT_PROGRESS_MODEL": "claude-3-haiku-20241022"
+      }
+    }
+  }
+}
+```
+
+#### Azure OpenAI
+```json
+{
+  "mcpServers": {
+    "agent-progress": {
+      "command": "agent-progress-mcp",
+      "env": {
+        "OPENAI_API_KEY": "your-azure-api-key",
+        "OPENAI_BASE_URL": "https://your-resource.openai.azure.com/openai/deployments/your-deployment",
+        "AGENT_PROGRESS_MODEL": "gpt-4"
+      }
+    }
+  }
+}
+```
+
+#### Local LLM with Ollama
+```json
+{
+  "mcpServers": {
+    "agent-progress": {
+      "command": "agent-progress-mcp",
+      "env": {
+        "OPENAI_API_KEY": "not-required",
+        "OPENAI_BASE_URL": "http://localhost:11434/v1",
+        "AGENT_PROGRESS_MODEL": "llama3.1:8b"
+      }
+    }
+  }
+}
 ```
 
 ## Tool Usage
@@ -311,12 +379,67 @@ All errors are logged to stderr with timestamps and context information.
 
 ## License
 
-[Add your license here]
+MIT License - See [LICENSE](LICENSE) file for details. This project is open source and available under the MIT License.
 
 ## Contributing
 
-[Add contribution guidelines here]
+We welcome contributions! Please feel free to submit a Pull Request. For major changes:
+
+1. Fork the repository
+2. Create your feature branch (`git checkout -b feature/AmazingFeature`)
+3. Commit your changes using [Conventional Commits](#commit-format)
+4. Push to the branch (`git push origin feature/AmazingFeature`)
+5. Open a Pull Request
+
+### Commit Format
+
+This project uses [Conventional Commits](https://www.conventionalcommits.org/) for automated releases:
+
+```
+<type>: <description>
+
+[optional body]
+
+[optional footer]
+```
+
+**Types that trigger releases:**
+- `fix:` - Bug fix → **patch** release (1.0.0 → 1.0.1)
+- `feat:` - New feature → **minor** release (1.0.0 → 1.1.0)
+- `feat!:` or `BREAKING CHANGE:` - Breaking change → **major** release (1.0.0 → 2.0.0)
+
+**Types that don't trigger releases:**
+- `docs:` - Documentation only
+- `chore:` - Maintenance tasks
+- `test:` - Adding/updating tests
+- `refactor:` - Code changes that don't fix bugs or add features
+- `style:` - Formatting, whitespace, etc.
+- `ci:` - CI/CD changes
+
+**Examples:**
+```bash
+git commit -m "fix: resolve database connection timeout"
+git commit -m "feat: add bulk import capability"
+git commit -m "feat!: change API response format"
+git commit -m "docs: update installation instructions"
+```
+
+### Release Process
+
+Releases are automated via [release-please](https://github.com/googleapis/release-please):
+
+1. Push commits to `main` using conventional commit format
+2. release-please creates/updates a "Release PR" with changelog
+3. Review and merge the Release PR when ready
+4. GitHub Release is created automatically
+5. npm publish triggers on the release
+
+For questions or suggestions, please [open an issue](https://github.com/thesammykins/context-mcp/issues).
 
 ## Support
 
-[Add support information here]
+Have questions or need help? Here are some resources:
+
+- **[GitHub Issues](https://github.com/thesammykins/context-mcp/issues)** - Report bugs or request features
+- **[GitHub Discussions](https://github.com/thesammykins/context-mcp/discussions)** - Ask questions and share ideas
+- **[Project Repository](https://github.com/thesammykins/context-mcp)** - Source code and documentation

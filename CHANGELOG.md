@@ -1,7 +1,8 @@
 # Changelog
 
-## 1.2.0
+## 1.2.2
 
+75d05b0 fix: ensure build files are included in npm package
 b3ab13f feat: add dynamic version injection and comprehensive documentation structure
 4ecae62 docs: restructure documentation and implement dynamic version injection
 5e56ced feat: implement custom semantic versioning release workflow

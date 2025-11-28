@@ -6,6 +6,7 @@ export interface OpenAIConfig {
 
 export interface Config {
   dbPath: string;
+  encryptionPassword?: string;
   openai: OpenAIConfig;
   logLevel: 'debug' | 'info' | 'warn' | 'error';
 }

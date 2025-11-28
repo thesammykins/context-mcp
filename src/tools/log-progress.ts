@@ -1,7 +1,7 @@
 import { z } from 'zod';
 import { nanoid } from 'nanoid';
 import type { ProgressStore } from '../storage/index.js';
-import { ValidationError, DatabaseError, logError } from '../utils/index.js';
+import { ValidationError, DatabaseError, logError, sanitizeTitle, sanitizeContentWithPII, sanitizeTags, sanitizeAgentId, validateProjectId } from '../utils/index.js';
 
 const LogProgressInputSchema = z.object({
   projectId: z.string().min(1, 'projectId is required').max(100, 'projectId must be at most 100 characters'),
@@ -18,12 +18,19 @@ export function createLogProgressTool(store: ProgressStore) {
         // Validate input
         const validated = LogProgressInputSchema.parse(args);
         
+        // Sanitize all inputs
+        const sanitizedProjectId = validateProjectId(validated.projectId);
+        const sanitizedTitle = sanitizeTitle(validated.title);
+        const sanitizedContent = sanitizeContentWithPII(validated.content);
+        const sanitizedTags = sanitizeTags(validated.tags || []);
+        const sanitizedAgentId = sanitizeAgentId(validated.agentId || null);
+        
         try {
           // Ensure project exists
-          store.ensureProject(validated.projectId);
+          store.ensureProject(sanitizedProjectId);
         } catch (err) {
           const error = err instanceof DatabaseError ? err : new Error(String(err));
-          logError(error, 'database', { operation: 'log-progress:ensureProject', projectId: validated.projectId });
+          logError(error, 'database', { operation: 'log-progress:ensureProject', projectId: sanitizedProjectId });
           return {
             isError: true,
             content: [{ type: 'text' as const, text: `Failed to create project: ${error instanceof DatabaseError ? error.message : 'Unknown error'}` }],
@@ -36,25 +43,25 @@ export function createLogProgressTool(store: ProgressStore) {
         
         try {
           // Create entry
-          const entry = store.createEntry({
+          const entry = await store.createEntry({
             id,
-            projectId: validated.projectId,
-            title: validated.title,
-            content: validated.content,
+            projectId: sanitizedProjectId,
+            title: sanitizedTitle,
+            content: sanitizedContent,
             createdAt,
-            tags: validated.tags || [],
-            agentId: validated.agentId || null,
+            tags: sanitizedTags,
+            agentId: sanitizedAgentId,
           });
           
           // Format response
-          const textContent = `Logged: ${entry.title} (ID: ${entry.id}) in project ${entry.projectId}`;
+          const textContent = `Logged: ${sanitizedTitle} (ID: ${entry.id}) in project ${sanitizedProjectId}`;
           
           return {
             content: [{ type: 'text' as const, text: textContent }],
             structuredContent: {
               id: entry.id,
-              projectId: entry.projectId,
-              title: entry.title,
+              projectId: sanitizedProjectId,
+              title: sanitizedTitle,
               createdAt: entry.createdAt,
             },
           };
@@ -62,7 +69,7 @@ export function createLogProgressTool(store: ProgressStore) {
           const error = err instanceof DatabaseError ? err : new Error(String(err));
           logError(error, 'database', { 
             operation: 'log-progress:createEntry', 
-            projectId: validated.projectId 
+            projectId: sanitizedProjectId 
           });
           return {
             isError: true,

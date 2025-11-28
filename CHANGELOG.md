@@ -1,7 +1,9 @@
 # Changelog
 
-## 1.1.0
+## 1.2.0
 
+b3ab13f feat: add dynamic version injection and comprehensive documentation structure
+4ecae62 docs: restructure documentation and implement dynamic version injection
 5e56ced feat: implement custom semantic versioning release workflow
 bdd949e fix: remove trailing comma in package.json devDependencies
 130f5a9 fix: add clean install strategy for rollup issue in CI

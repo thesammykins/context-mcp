@@ -1,5 +1,17 @@
 # Changelog
 
+## [1.4.0](https://github.com/thesammykins/context-mcp/compare/v1.3.0...v1.4.0) (2025-11-28)
+
+
+### Features
+
+* replace custom release workflow with release-please-action@v4 ([2c76d9e](https://github.com/thesammykins/context-mcp/commit/2c76d9ec753afbe681edbf4abf8773fbc8ab8d78))
+
+
+### Bug Fixes
+
+* simplify release-please configuration ([3c267c4](https://github.com/thesammykins/context-mcp/commit/3c267c42234186d7223a004b4fd458b5e615d9f8))
+
 ## 1.3.0
 
 62b8ade feat: implement comprehensive agent progress tool improvements

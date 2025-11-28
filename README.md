@@ -101,6 +101,28 @@ The server works with any MCP-compatible host:
 - **Cursor** - Add to MCP servers configuration
 - **MCP CLI** - Command-line usage
 - **Custom hosts** - STDIO transport protocol
+- **OpenCode** - Add to opencode.jsonc configuration
+
+### OpenCode Configuration
+
+Add to your `opencode.jsonc`:
+
+```jsonc
+{
+  "$schema": "https://opencode.ai/config.json",
+  "mcp": {
+    "agent-progress": {
+      "type": "local",
+      "command": ["npx", "-y", "@thesammykins/agent-progress-mcp"],
+      "environment": {
+        "OPENAI_API_KEY": "{env:OPENAI_API_KEY}"
+      }
+    }
+  }
+}
+```
+
+Use `use the agent-progress tool` in your prompts to enable progress tracking.
 
 ## Database & Privacy
 

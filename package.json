@@ -1,6 +1,6 @@
 {
   "name": "@thesammykins/agent-progress-mcp",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "MCP server for tracking AI agent progress across projects",
   "type": "module",
   "main": "./build/index.js",

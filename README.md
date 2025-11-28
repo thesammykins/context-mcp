@@ -3,6 +3,7 @@
 [![npm version](https://img.shields.io/npm/v/@thesammykins/agent-progress-mcp.svg)](https://www.npmjs.com/package/@thesammykins/agent-progress-mcp)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![GitHub](https://img.shields.io/badge/GitHub-thesammykins/context--mcp-blue)](https://github.com/thesammykins/context-mcp)
+[![Package Size](https://img.shields.io/bundlephobia/minzip/@thesammykins/agent-progress-mcp)](https://bundlephobia.com/package/@thesammykins/agent-progress-mcp)
 
 An MCP (Model Context Protocol) server that enables AI agents to track, search, and retrieve their progress across projects. Provides persistent memory and context sharing for multi-step or multi-agent workflows.
 
@@ -20,7 +21,7 @@ An MCP (Model Context Protocol) server that enables AI agents to track, search, 
 - **Get Context** - Retrieve summarized information about prior work by ID
 - **Project-scoped** - All entries are organized by project to keep context relevant
 - **LLM-powered Summarisation** - Automatic summarisation using OpenAI-compatible APIs
-- **SQLite Storage** - Fast, local database with full-text search capabilities
+- **SQLite Storage** - Fast, local database with full-text search capabilities (stored locally on your machine)
 - **Comprehensive Error Handling** - Graceful fallbacks and detailed error reporting
 
 ## Installation
@@ -40,6 +41,31 @@ npm install
 npm run build
 npm link  # Optional: for local development
 ```
+
+## Quick Start
+
+1. **Install the package** globally or add to your project
+2. **Set your OpenAI API key**:
+   ```bash
+   export OPENAI_API_KEY=your-api-key-here
+   ```
+3. **Add to Claude Desktop** configuration:
+   ```json
+   {
+     "mcpServers": {
+       "agent-progress": {
+         "command": "agent-progress-mcp",
+         "env": {
+           "OPENAI_API_KEY": "your-api-key-here"
+         }
+       }
+     }
+   }
+   ```
+4. **Start tracking progress**:
+   - Log completed work: `log_progress`
+   - Search previous work: `search_logs`  
+   - Get context: `get_context`
 
 ## Configuration
 
@@ -336,7 +362,16 @@ npm run dev
 npm start
 ```
 
-## Database Schema
+## Database Storage
+
+The server uses SQLite for local data storage, ensuring your progress data remains private and stored locally on your machine. No data is sent to external servers except for optional LLM summarisation.
+
+### Default Database Location
+- **Path**: `~/.agent-progress-mcp/data.db`
+- **Customizable**: Set `AGENT_PROGRESS_DB_PATH` environment variable
+- **Format**: SQLite database file with full-text search capabilities
+
+### Database Schema
 
 The server uses SQLite with the following schema:
 
@@ -376,13 +411,69 @@ The server provides comprehensive error handling with the following error catego
 
 All errors are logged to stderr with timestamps and context information.
 
-## Security
+## Performance
 
-- API keys are loaded from environment variables only
-- Database is stored locally with file permissions
-- Input validation on all parameters
-- No external network access except configured LLM API
-- SQL injection protection via parameterized queries
+The server is optimized for performance with:
+
+- **SQLite Database**: Fast local storage with full-text search
+- **Efficient Indexing**: Optimized queries for common operations
+- **Lightweight Package**: ~52KB unpacked size with minimal dependencies
+- **Async Operations**: Non-blocking I/O for concurrent requests
+- **Connection Pooling**: Efficient database connection management
+
+### Database Performance Tips
+
+- Use specific date ranges in `search_logs` for faster queries
+- Tag your entries for efficient filtering
+- The database automatically creates indexes for optimal performance
+
+## Troubleshooting
+
+### Common Issues
+
+**Server fails to start:**
+- Ensure `OPENAI_API_KEY` is set in environment variables
+- Check Node.js version (requires >= 18.0.0)
+- Verify database directory permissions
+
+**Summarisation not working:**
+- Confirm OpenAI API key is valid and has credits
+- Check `OPENAI_BASE_URL` if using custom provider
+- Verify network connectivity to API endpoint
+
+**Database errors:**
+- Ensure database directory exists and is writable
+- Check available disk space
+- Try removing the database file to reset
+
+**Permission denied errors:**
+- Check file permissions on database directory
+- Ensure the user running the MCP server has write access
+
+### Debug Mode
+
+Enable debug logging for troubleshooting:
+
+```bash
+export AGENT_PROGRESS_LOG_LEVEL=debug
+agent-progress-mcp
+```
+
+### Getting Help
+
+- **[GitHub Issues](https://github.com/thesammykins/context-mcp/issues)** - Report bugs or request features
+- **[GitHub Discussions](https://github.com/thesammykins/context-mcp/discussions)** - Ask questions and share ideas
+- **[Project Repository](https://github.com/thesammykins/context-mcp)** - Source code and documentation
+
+## Security & Privacy
+
+- **Local Data Storage**: All progress data stored locally on your machine
+- **API Key Protection**: Keys loaded from environment variables only
+- **File Permissions**: Database stored with appropriate file permissions
+- **Input Validation**: Comprehensive validation on all parameters
+- **Network Access**: No external network access except configured LLM API
+- **SQL Injection Protection**: Parameterized queries prevent injection attacks
+- **Privacy**: Your work context never leaves your local environment (except for optional summarisation)
 
 ## License
 

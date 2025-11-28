@@ -5,6 +5,7 @@ import { registerTools } from "./tools/index.js";
 import { ProgressStore } from "./storage/index.js";
 import { Summariser } from "./summariser/index.js";
 import { loadConfig } from "./config/index.js";
+import { VERSION } from "./version.js";
 
 async function main() {
   const config = loadConfig();
@@ -13,7 +14,7 @@ async function main() {
 
   const server = new McpServer({
     name: "agent-progress-mcp",
-    version: "1.0.0",
+    version: VERSION,
   });
 
   registerTools(server, store, summariser);

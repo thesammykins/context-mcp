@@ -23,9 +23,9 @@
 ## Agent Progress Tool Usage
 
 ### Workflow Pattern
-1. **Search**: `agent-progress_search_logs(projectId, query)` - discover previous work
-2. **Context**: `agent-progress_get_context(projectId, id, includeFull=true)` - understand implementation  
-3. **Log**: `agent-progress_log_progress(projectId, title, content, tags, agentId)` - record your work
+1. **Search**: `search_logs(projectId, query)` - discover previous work
+2. **Context**: `get_context(projectId, id, includeFull=true)` - understand implementation  
+3. **Log**: `log_progress(projectId, title, content, tags, agentId)` - record your work
 
 ### When to Use
 - **Before starting**: Always search to avoid duplication

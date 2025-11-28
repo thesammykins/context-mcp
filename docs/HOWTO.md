@@ -6,13 +6,13 @@ This guide explains how to effectively use the agent progress tools for tracking
 
 The agent progress system provides three tools for maintaining shared context across agents:
 
-1. **`agent-progress_log_progress`** - Record completed work
-2. **`agent-progress_search_logs`** - Discover previous work  
-3. **`agent-progress_get_context`** - Get detailed context of specific work
+1. **`log_progress`** - Record completed work
+2. **`search_logs`** - Discover previous work  
+3. **`get_context`** - Get detailed context of specific work
 
 ## When to Use Each Tool
 
-### 📝 `agent-progress_log_progress`
+### 📝 `log_progress`
 **Use when:** You've completed a meaningful piece of work that other agents should know about.
 
 **Perfect for:**
@@ -32,7 +32,7 @@ The agent progress system provides three tools for maintaining shared context ac
 **Best Practices:**
 ```bash
 # Good example - specific and informative
-agent-progress_log_progress(
+log_progress(
   projectId="web-app",
   title="Implemented JWT authentication system",
   content="Created JWT token generation/validation utilities, added auth middleware, implemented login/register endpoints with bcrypt password hashing. All tests passing.",
@@ -41,14 +41,14 @@ agent-progress_log_progress(
 )
 
 # Bad example - too vague
-agent-progress_log_progress(
+log_progress(
   projectId="web-app", 
   title="Did some auth stuff",
   content="Fixed auth"
 )
 ```
 
-### 🔍 `agent-progress_search_logs`
+### 🔍 `search_logs`
 **Use when:** You need to understand what work has been done before starting new work.
 
 **Perfect for:**
@@ -61,20 +61,20 @@ agent-progress_log_progress(
 **Search Strategies:**
 ```bash
 # Search by keyword (case-insensitive)
-agent-progress_search_logs(projectId="web-app", query="auth")
+search_logs(projectId="web-app", query="auth")
 
 # Filter by tags (AND logic - must have ALL tags)
-agent-progress_search_logs(projectId="web-app", tags=["security", "api"])
+search_logs(projectId="web-app", tags=["security", "api"])
 
 # Date range filtering
-agent-progress_search_logs(
+search_logs(
   projectId="web-app", 
   startDate="2025-11-01T00:00:00Z",
   endDate="2025-11-30T23:59:59Z"
 )
 
 # Combined search
-agent-progress_search_logs(
+search_logs(
   projectId="web-app",
   query="database",
   tags=["migration"],
@@ -82,7 +82,7 @@ agent-progress_search_logs(
 )
 ```
 
-### 📖 `agent-progress_get_context`
+### 📖 `get_context`
 **Use when:** You've found an interesting entry from search and need full details.
 
 **Perfect for:**
@@ -95,14 +95,14 @@ agent-progress_search_logs(
 **Usage Patterns:**
 ```bash
 # Get summary (quick overview)
-agent-progress_get_context(
+get_context(
   projectId="web-app",
   id="abc123def456",
   includeFull=false
 )
 
 # Get full details (when you need to understand implementation)
-agent-progress_get_context(
+get_context(
   projectId="web-app", 
   id="abc123def456",
   includeFull=true
@@ -114,13 +114,13 @@ agent-progress_get_context(
 ### Agent A (Starting Work)
 ```bash
 # 1. Check what's been done
-agent-progress_search_logs(projectId="mobile-app", query="navigation")
+search_logs(projectId="mobile-app", query="navigation")
 
 # 2. Get context on relevant work
-agent-progress_get_context(projectId="mobile-app", id="found-id", includeFull=true)
+get_context(projectId="mobile-app", id="found-id", includeFull=true)
 
 # 3. Log your completed work
-agent-progress_log_progress(
+log_progress(
   projectId="mobile-app",
   title="Added bottom navigation with 3 tabs",
   content="Implemented Flutter bottom navigation bar with Home, Profile, Settings tabs. Used Material Design, added route handling, updated theme.",
@@ -132,13 +132,13 @@ agent-progress_log_progress(
 ### Agent B (Continuing Work)
 ```bash
 # 1. Discover recent work
-agent-progress_search_logs(projectId="mobile-app")
+search_logs(projectId="mobile-app")
 
 # 2. Understand what Agent A did
-agent-progress_get_context(projectId="mobile-app", id="agent-a-entry-id", includeFull=true)
+get_context(projectId="mobile-app", id="agent-a-entry-id", includeFull=true)
 
 # 3. Build upon their work and log your contribution
-agent-progress_log_progress(
+log_progress(
   projectId="mobile-app",
   title="Implemented navigation routing logic",
   content="Extended Agent A's navigation setup by adding route definitions, navigation state management, and deep linking support. Integrated with existing bottom navigation.",
@@ -171,23 +171,23 @@ agent-progress_log_progress(
 ### Finding Related Work
 ```bash
 # Find all authentication-related work
-agent-progress_search_logs(projectId="web-app", query="auth")
+search_logs(projectId="web-app", query="auth")
 
 # Find all database work
-agent-progress_search_logs(projectId="web-app", tags=["database"])
+search_logs(projectId="web-app", tags=["database"])
 
 # Find recent work by specific agent
-agent-progress_search_logs(projectId="web-app", limit=20)
+search_logs(projectId="web-app", limit=20)
 # Then filter results by agentId in the structured content
 ```
 
 ### Understanding Project Evolution
 ```bash
 # Get chronological view
-agent-progress_search_logs(projectId="web-app", limit=50)
+search_logs(projectId="web-app", limit=50)
 
 # Get specific time period
-agent-progress_search_logs(
+search_logs(
   projectId="web-app",
   startDate="2025-11-01T00:00:00Z",
   endDate="2025-11-30T23:59:59Z"
@@ -197,10 +197,10 @@ agent-progress_search_logs(
 ### Debugging and Troubleshooting
 ```bash
 # Find who worked on a specific feature
-agent-progress_search_logs(projectId="web-app", query="payment")
+search_logs(projectId="web-app", query="payment")
 
 # Get full implementation details
-agent-progress_get_context(projectId="web-app", id="payment-entry-id", includeFull=true)
+get_context(projectId="web-app", id="payment-entry-id", includeFull=true)
 ```
 
 ## Common Pitfalls to Avoid

@@ -1,0 +1,53 @@
+{
+  "bootstrap-sha": "1.0.0",
+  "release-type": "node",
+  "packages": {
+    ".": {
+      "package-name": "@thesammykins/agent-progress-mcp",
+      "changelog-path": "CHANGELOG.md",
+      "release-as": "",
+      "bump-minor-pre-major": true,
+      "bump-patch-for-minor-pre-major": true,
+      "changelog-sections": [
+        {
+          "type": "feat",
+          "section": "Features"
+        },
+        {
+          "type": "fix",
+          "section": "Bug Fixes"
+        },
+        {
+          "type": "chore",
+          "section": "Miscellaneous",
+          "hidden": false
+        },
+        {
+          "type": "docs",
+          "section": "Documentation",
+          "hidden": false
+        },
+        {
+          "type": "style",
+          "section": "Styling",
+          "hidden": false
+        },
+        {
+          "type": "refactor",
+          "section": "Code Refactoring",
+          "hidden": false
+        },
+        {
+          "type": "perf",
+          "section": "Performance",
+          "hidden": false
+        },
+        {
+          "type": "test",
+          "section": "Tests",
+          "hidden": false
+        }
+      ]
+    }
+  }
+}

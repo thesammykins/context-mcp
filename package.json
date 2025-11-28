@@ -15,7 +15,8 @@
     "clean": "rm -rf build",
     "lint": "echo 'ESLint config not found - skipping linting'",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "release": "release-please release"
   },
   "files": [
     "build/**/*.js",
@@ -47,7 +48,8 @@
     "@types/node": "^20.0.0",
     "typescript": "^5.4.0",
     "vitest": "^1.0.0",
-    "eslint": "^9.0.0"
+    "eslint": "^9.0.0",
+    "@googleapis/release-please": "^16.0.0"
   },
   "engines": {
     "node": ">=18.0.0"

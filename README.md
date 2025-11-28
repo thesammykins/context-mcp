@@ -6,6 +6,13 @@
 
 An MCP (Model Context Protocol) server that enables AI agents to track, search, and retrieve their progress across projects. Provides persistent memory and context sharing for multi-step or multi-agent workflows.
 
+## AGENT.md
+
+### Progress Tracking Workflow
+1. **Before starting**: Search existing entries to understand prior work and avoid duplication
+2. **After completing**: Log significant outcomes, decisions, and technical details with descriptive tags
+3. **When context needed**: Search → Review IDs → Get detailed context for relevant entries
+
 ## Features
 
 - **Log Progress** - Record completed work with structured metadata

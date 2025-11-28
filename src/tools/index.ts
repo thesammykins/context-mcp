@@ -20,7 +20,7 @@ export function registerTools(
     'log_progress',
     {
       title: 'Log Progress',
-      description: 'Log progress entry for a project',
+      description: 'Log completed work with title, content, and optional tags. Use after finishing significant tasks, decisions, or milestones. Returns entry ID for future reference.',
       inputSchema: z.object({
         projectId: z.string().min(1).max(100).describe('Project ID (max 100 chars)'),
         title: z.string().min(1).max(100).describe('Entry title (max 100 chars)'),
@@ -43,7 +43,7 @@ export function registerTools(
     'get_context',
     {
       title: 'Get Context',
-      description: 'Get context and summary for a specific progress entry',
+      description: 'Retrieve detailed context and AI-generated summary for a specific entry. Use search_logs first to find relevant IDs, then get full context with this tool.',
       inputSchema: z.object({
         projectId: z.string().min(1).describe('Project ID'),
         id: z.string().min(1).describe('Entry ID'),
@@ -67,7 +67,7 @@ export function registerTools(
     'search_logs',
     {
       title: 'Search Logs',
-      description: 'Search progress entries within a project',
+      description: 'Find relevant progress entries by query, tags, or date range. Use to discover prior work before starting new tasks or when context is needed.',
       inputSchema: z.object({
         projectId: z.string().min(1).describe('Project ID'),
         query: z.string().optional().describe('Optional search query'),

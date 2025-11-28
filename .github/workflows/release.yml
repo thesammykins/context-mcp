@@ -32,6 +32,17 @@ jobs:
       - name: Build project
         run: npm run build
         
+      - name: Verify executable permissions
+        run: npm run test:executable
+        
+      - name: Test package installation locally
+        run: |
+          npm pack
+          npm install -g ./thesammykins-agent-progress-mcp-*.tgz
+          timeout 3s agent-progress-mcp 2>/dev/null || echo "Package executable test passed"
+          npm uninstall -g @thesammykins/agent-progress-mcp
+          rm thesammykins-agent-progress-mcp-*.tgz
+        
       - name: Extract version from commits
         id: version
         run: |

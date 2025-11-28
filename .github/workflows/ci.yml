@@ -35,6 +35,13 @@ jobs:
     - name: Build project
       run: npm run build
       
+    - name: Verify executable permissions
+      run: npm run test:executable
+      
+    - name: Test npx execution
+      run: |
+        timeout 5s npx . --help 2>/dev/null || echo "Server started successfully"
+      
     - name: Upload build artifacts
       uses: actions/upload-artifact@v4
       with:

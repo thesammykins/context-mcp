@@ -8,7 +8,7 @@
     "agent-progress-mcp": "./build/index.js"
   },
   "scripts": {
-    "build": "npm run clean && tsc -p tsconfig.build.json",
+    "build": "npm run clean && tsc -p tsconfig.build.json && chmod +x build/index.js",
     "build:dev": "tsc",
     "dev": "tsc --watch",
     "start": "node build/index.js",
@@ -16,6 +16,7 @@
     "lint": "echo 'ESLint config not found - skipping linting'",
     "test": "vitest run",
     "test:watch": "vitest",
+    "test:executable": "test -x build/index.js && echo '✓ Binary executable' || (echo '✗ Binary not executable' && exit 1)",
     "release": "release-please release"
   },
   "files": [

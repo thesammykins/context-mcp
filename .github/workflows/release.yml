@@ -7,10 +7,9 @@ on:
 
 permissions:
   contents: write
-  pull-requests: write
 
 jobs:
-  release-please:
+  release:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -26,27 +25,110 @@ jobs:
           registry-url: 'https://registry.npmjs.org'
           
       - name: Install dependencies
-        run: npm install
+        run: |
+          rm -rf node_modules package-lock.json
+          npm install
         
       - name: Build project
         run: npm run build
         
-      - name: Release Please
-        uses: googleapis/release-please-action@v4
-        id: release
+      - name: Extract version from commits
+        id: version
+        run: |
+          # Check for conventional commits and determine version bump
+          if git log --oneline -1 | grep -q "feat!"; then
+            echo "type=major" >> $GITHUB_OUTPUT
+          elif git log --oneline -1 | grep -q "feat"; then
+            echo "type=minor" >> $GITHUB_OUTPUT
+          elif git log --oneline -1 | grep -q "fix"; then
+            echo "type=patch" >> $GITHUB_OUTPUT
+          else
+            echo "type=none" >> $GITHUB_OUTPUT
+          fi
+          
+      - name: Get current version
+        id: current_version
+        run: |
+          echo "version=$(node -p "require('./package.json').version")" >> $GITHUB_OUTPUT
+          
+      - name: Calculate next version
+        id: next_version
+        run: |
+          CURRENT="${{ steps.current_version.outputs.version }}"
+          TYPE="${{ steps.version.outputs.type }}"
+          
+          if [ "$TYPE" = "none" ]; then
+            echo "No version bump needed"
+            echo "release_created=false" >> $GITHUB_OUTPUT
+            exit 0
+          fi
+          
+          IFS='.' read -ra VERSION <<< "$CURRENT"
+          MAJOR=${VERSION[0]}
+          MINOR=${VERSION[1]}
+          PATCH=${VERSION[2]}
+          
+          case $TYPE in
+            major)
+              MAJOR=$((MAJOR + 1))
+              MINOR=0
+              PATCH=0
+              ;;
+            minor)
+              MINOR=$((MINOR + 1))
+              PATCH=0
+              ;;
+            patch)
+              PATCH=$((PATCH + 1))
+              ;;
+          esac
+          
+          NEXT_VERSION="$MAJOR.$MINOR.$PATCH"
+          echo "version=$NEXT_VERSION" >> $GITHUB_OUTPUT
+          echo "release_created=true" >> $GITHUB_OUTPUT
+          
+      - name: Update package.json version
+        if: steps.next_version.outputs.release_created == 'true'
+        run: |
+          npm version ${{ steps.next_version.outputs.version }} --no-git-tag-version
+          
+      - name: Create changelog
+        if: steps.next_version.outputs.release_created == 'true'
+        run: |
+          echo "# Changelog" > CHANGELOG.md
+          echo "" >> CHANGELOG.md
+          echo "## ${{ steps.next_version.outputs.version }}" >> CHANGELOG.md
+          echo "" >> CHANGELOG.md
+          git log --oneline --grep="feat\|fix" >> CHANGELOG.md || echo "No changes" >> CHANGELOG.md
+          
+      - name: Commit and tag
+        if: steps.next_version.outputs.release_created == 'true'
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git add package.json CHANGELOG.md
+          git commit -m "chore: release ${{ steps.next_version.outputs.version }}"
+          git tag v${{ steps.next_version.outputs.version }}
+          
+      - name: Push changes and tags
+        if: steps.next_version.outputs.release_created == 'true'
+        run: |
+          git push origin main --follow-tags
+          
+      - name: Create GitHub Release
+        if: steps.next_version.outputs.release_created == 'true'
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-          release-type: node
-          package-name: '@thesammykins/agent-progress-mcp'
-            
+          tag_name: v${{ steps.next_version.outputs.version }}
+          release_name: Release ${{ steps.next_version.outputs.version }}
+          body_path: CHANGELOG.md
+          draft: false
+          prerelease: false
+          
       - name: Publish to npm
-        if: ${{ steps.release.outputs.release_created }}
+        if: steps.next_version.outputs.release_created == 'true'
         run: npm publish --access public
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
-          
-      - name: Output release information
-        if: ${{ steps.release.outputs.release_created }}
-        run: |
-          echo "Release created: ${{ steps.release.outputs.tag_name }}"
-          echo "Release version: ${{ steps.release.outputs.version }}"

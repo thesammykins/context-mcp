@@ -7,7 +7,6 @@ on:
 
 permissions:
   contents: write
-  pull-requests: write
 
 jobs:
   release-please:
@@ -29,8 +28,9 @@ jobs:
         uses: googleapis/release-please-action@v4
         id: release
         with:
-          config-file: .github/release-please-config.json
-          manifest-file: .release-please-manifest.json
+          release-type: node
+          package-name: "@thesammykins/agent-progress-mcp"
+          changelog-path: CHANGELOG.md
           
       - name: Checkout code for publishing
         if: ${{ steps.release.outputs.release_created }}

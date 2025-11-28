@@ -9,6 +9,16 @@
       "bump-minor-pre-major": true,
       "bump-patch-for-minor-pre-major": true,
       "changelog-sections": [
+{
+  "bootstrap-sha": "1.0.0",
+  "release-type": "node",
+  "packages": {
+    ".": {
+      "package-name": "@thesammykins/agent-progress-mcp",
+      "changelog-path": "CHANGELOG.md",
+      "bump-minor-pre-major": true,
+      "bump-patch-for-minor-pre-major": true,
+      "changelog-sections": [
         {
           "type": "feat",
           "section": "Features"
@@ -47,6 +57,11 @@
           "section": "Tests",
           "hidden": false
         }
+      ]
+    }
+  },
+  ".": "1.3.0"
+}
       ]
     }
   }

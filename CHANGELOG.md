@@ -1,7 +1,8 @@
 # Changelog
 
-## 1.2.3
+## 1.2.4
 
+a611896 fix: simplify executable tests to avoid API key requirement
 b069991 fix: ensure MCP server binary has executable permissions
 75d05b0 fix: ensure build files are included in npm package
 b3ab13f feat: add dynamic version injection and comprehensive documentation structure

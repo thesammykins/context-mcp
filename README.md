@@ -1,5 +1,7 @@
 # Agent Progress Tracker MCP Server
 
+![Context Logo](context_logo.jpg)
+
 [![npm version](https://img.shields.io/npm/v/@thesammykins/agent-progress-mcp.svg)](https://www.npmjs.com/package/@thesammykins/agent-progress-mcp)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![GitHub](https://img.shields.io/badge/GitHub-thesammykins/context--mcp-blue)](https://github.com/thesammykins/context-mcp)

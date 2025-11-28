@@ -20,6 +20,24 @@
 - Follow existing patterns: interfaces in types.ts, tool functions return handlers
 - Database operations use better-sqlite3 with proper cleanup in afterEach
 
+## Agent Progress Tool Usage
+
+### Workflow Pattern
+1. **Search**: `agent-progress_search_logs(projectId, query)` - discover previous work
+2. **Context**: `agent-progress_get_context(projectId, id, includeFull=true)` - understand implementation  
+3. **Log**: `agent-progress_log_progress(projectId, title, content, tags, agentId)` - record your work
+
+### When to Use
+- **Before starting**: Always search to avoid duplication
+- **After completing**: Log significant work (features, refactoring, infrastructure, tests)
+- **Don't log**: Minor tweaks, temporary code, personal notes
+
+### Best Practices
+- Use repository names as projectIds (`web-app`, `mobile-app`)
+- Be specific in content: exact files, libraries, approaches
+- 3-5 relevant tags max: technology + feature + type
+- Reference related work when building on others' contributions
+
 ## Commit Guidelines
 - Use conventional commits: `feat:`, `fix:`, `chore:`, `docs:`, `style:`, `refactor:`, `perf:`, `test:`
 - `feat!` triggers major version bump, `feat:` triggers minor, `fix:` triggers patch

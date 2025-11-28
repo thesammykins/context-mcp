@@ -1,7 +1,8 @@
 # Changelog
 
-## 1.2.2
+## 1.2.3
 
+b069991 fix: ensure MCP server binary has executable permissions
 75d05b0 fix: ensure build files are included in npm package
 b3ab13f feat: add dynamic version injection and comprehensive documentation structure
 4ecae62 docs: restructure documentation and implement dynamic version injection

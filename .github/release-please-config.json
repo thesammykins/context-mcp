@@ -5,7 +5,7 @@
     ".": {
       "package-name": "@thesammykins/agent-progress-mcp",
       "changelog-path": "CHANGELOG.md",
-      "release-as": "",
+
       "bump-minor-pre-major": true,
       "bump-patch-for-minor-pre-major": true,
       "changelog-sections": [

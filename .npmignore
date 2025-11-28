@@ -3,6 +3,9 @@ src/
 *.ts
 !*.d.ts
 
+# Include build directory explicitly
+build/
+
 # Test files
 **/__tests__/
 **/*.test.ts

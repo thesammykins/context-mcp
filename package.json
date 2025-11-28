@@ -1,5 +1,5 @@
 {
-  "name": "@your-org/agent-progress-mcp",
+  "name": "@thesammykins/agent-progress-mcp",
   "version": "1.0.0",
   "description": "MCP server for tracking AI agent progress across projects",
   "type": "module",
@@ -15,7 +15,23 @@
     "test": "vitest run",
     "test:watch": "vitest"
   },
-  "files": ["build", "README.md", "LICENSE"],
+  "files": [
+    "build/**/*",
+    "README.md",
+    "LICENSE"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/thesammykins/context-mcp.git"
+  },
+  "bugs": {
+    "url": "https://github.com/thesammykins/context-mcp/issues"
+  },
+  "homepage": "https://github.com/thesammykins/context-mcp#readme",
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org/"
+  },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.0.0",
     "better-sqlite3": "^11.0.0",

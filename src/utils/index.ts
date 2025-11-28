@@ -5,6 +5,9 @@ export {
   SummariserError,
   formatErrorLog,
   logError,
+  getSummarizationMetrics,
+  updateSummarizationMetrics,
+  logSummarizationMetrics,
 } from './errors.js';
 
 export {

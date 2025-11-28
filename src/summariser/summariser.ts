@@ -1,11 +1,50 @@
 import OpenAI from 'openai';
 import type { OpenAIConfig } from '../types.js';
-import { SummariserError, logError } from '../utils/index.js';
+import { SummariserError, logError, updateSummarizationMetrics } from '../utils/index.js';
 
 const SYSTEM_PROMPT = 'You are a technical summariser. Summarise the following agent work log in 2-3 sentences. Focus on: what was done, key files/components changed, and outcome. Be concise and factual. Do not use phrases like "The agent" - write in past tense as if reporting completed work.';
 
-const FALLBACK_MAX_LENGTH = 500;
+const FALLBACK_MAX_LENGTH = 300;
 const LLM_TIMEOUT_MS = 30_000; // 30 second timeout for LLM API calls
+
+/**
+ * Create intelligent fallback summary when LLM fails
+ */
+function createFallbackSummary(title: string, content: string): string {
+  // Extract key information from content
+  const sentences = content.split(/[.!?]+/).filter(s => s.trim().length > 0);
+  
+  if (sentences.length === 0) {
+    return content.substring(0, FALLBACK_MAX_LENGTH);
+  }
+  
+  // Try to create a meaningful summary from first few sentences
+  let summary = '';
+  let usedChars = 0;
+  
+  for (const sentence of sentences) {
+    if (usedChars + sentence.length + 1 <= FALLBACK_MAX_LENGTH) {
+      summary += sentence.trim() + '. ';
+      usedChars += sentence.length + 1;
+    } else {
+      break;
+    }
+  }
+  
+  // If still too short, add key context
+  if (summary.length < 100 && content.length > 200) {
+    // Look for key technical terms
+    const techTerms = ['implemented', 'created', 'added', 'updated', 'fixed', 'built', 'developed'];
+    for (const term of techTerms) {
+      if (content.toLowerCase().includes(term) && summary.length + term.length + 2 <= FALLBACK_MAX_LENGTH) {
+        summary += `${term.charAt(0).toUpperCase() + term.slice(1)} `;
+        break;
+      }
+    }
+  }
+  
+  return summary.trim() + (content.length > FALLBACK_MAX_LENGTH ? '...' : '');
+}
 
 export interface SummariseResult {
   summary: string;
@@ -44,6 +83,10 @@ export class Summariser {
         throw new SummariserError('Empty response from LLM API', true);
       }
 
+      // Update metrics for successful request
+      const usage = response.usage;
+      updateSummarizationMetrics(true, false, usage?.total_tokens);
+      
       return {
         summary,
         isFallback: false,
@@ -66,10 +109,11 @@ export class Summariser {
 
       logError(error, 'llm', contextInfo);
       
-      // Return truncated content as fallback (exactly FALLBACK_MAX_LENGTH chars)
-      const fallback = content.length > FALLBACK_MAX_LENGTH 
-        ? content.substring(0, FALLBACK_MAX_LENGTH) 
-        : content;
+      // Return intelligent fallback summary
+      const fallback = createFallbackSummary(title, content);
+      
+      // Update metrics for failed request
+      updateSummarizationMetrics(false, true);
       
       return {
         summary: fallback,

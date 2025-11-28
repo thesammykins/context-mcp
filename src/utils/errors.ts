@@ -2,6 +2,46 @@
  * Custom error classes and formatting utilities
  */
 
+// Metrics tracking for summarization
+interface SummarizationMetrics {
+  totalRequests: number;
+  successfulRequests: number;
+  failedRequests: number;
+  fallbackUsed: number;
+  totalTokensUsed: number;
+}
+
+let metrics: SummarizationMetrics = {
+  totalRequests: 0,
+  successfulRequests: 0,
+  failedRequests: 0,
+  fallbackUsed: 0,
+  totalTokensUsed: 0,
+};
+
+export function getSummarizationMetrics(): SummarizationMetrics {
+  return { ...metrics };
+}
+
+export function updateSummarizationMetrics(
+  success: boolean,
+  isFallback: boolean,
+  tokensUsed?: number
+): void {
+  metrics.totalRequests++;
+  if (success) {
+    metrics.successfulRequests++;
+  } else {
+    metrics.failedRequests++;
+  }
+  if (isFallback) {
+    metrics.fallbackUsed++;
+  }
+  if (tokensUsed) {
+    metrics.totalTokensUsed += tokensUsed;
+  }
+}
+
 export class ValidationError extends Error {
   constructor(message: string) {
     super(message);
@@ -60,4 +100,15 @@ export function logError(
     // For other errors, just log message
     console.error(formattedError.split('\n')[0]);
   }
+}
+
+/**
+ * Log summarization metrics periodically
+ */
+export function logSummarizationMetrics(): void {
+  const { totalRequests, successfulRequests, failedRequests, fallbackUsed, totalTokensUsed } = getSummarizationMetrics();
+  const successRate = totalRequests > 0 ? (successfulRequests / totalRequests * 100).toFixed(1) : '0.0';
+  const fallbackRate = totalRequests > 0 ? (fallbackUsed / totalRequests * 100).toFixed(1) : '0.0';
+  
+  console.error(`[METRICS] Summarization: ${totalRequests} requests, ${successRate}% success, ${fallbackRate}% fallback, ${totalTokensUsed} tokens used`);
 }

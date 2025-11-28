@@ -35,25 +35,33 @@ export function createGetContextTool(store: ProgressStore, summariser: Summarise
            // Generate summary if not present
            let summary = entry.summary;
            if (summary === null) {
+             console.error('[DEBUG] Entry summary is null, generating new summary for:', entry.id);
+             console.error('[DEBUG] Entry title:', entry.title);
+             console.error('[DEBUG] Entry content length:', entry.content.length);
              const result = await summariser.summarise(entry.title, entry.content);
+             console.error('[DEBUG] Summarizer result:', { summary: result.summary, isFallback: result.isFallback });
              summary = result.summary;
              
              // Cache the summary only if it's not a fallback (real LLM result)
              // This prevents caching truncated fallbacks and avoids masking LLM failures
              if (!result.isFallback) {
+               console.error('[DEBUG] Caching summary to database...');
                try {
-                 store.updateSummary(entry.id, summary);
-               } catch (err) {
-                 const error = err instanceof Error ? err : new Error(String(err));
-                 logError(error, 'database', { 
-                   operation: 'get-context:updateSummary',
-                   projectId: validated.projectId,
-                   entryId: validated.id,
-                 });
-                 // Don't fail the request if caching fails - we still have the summary
+                   store.updateSummary(entry.id, summary);
+                   console.error('[DEBUG] Summary cached successfully');
+                 } catch (err) {
+                   const error = err instanceof Error ? err : new Error(String(err));
+                   logError(error, 'database', { 
+                     operation: 'get-context:updateSummary',
+                     projectId: validated.projectId,
+                     entryId: validated.id,
+                   });
+                   // Don't fail the request if caching fails - we still have the summary
+                 }
+               } else {
+                 console.error('[DEBUG] Not caching fallback summary');
                }
              }
-           }
           
           // Build response object
           const response: any = {
@@ -72,6 +80,12 @@ export function createGetContextTool(store: ProgressStore, summariser: Summarise
           
           // Format text content for display
           const textContent = summary;
+          
+          // Log metrics periodically (every 10th request)
+          if (Math.random() < 0.1) {
+            const { logSummarizationMetrics } = await import('../utils/index.js');
+            logSummarizationMetrics();
+          }
           
           return {
             content: [{ type: 'text' as const, text: textContent }],

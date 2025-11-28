@@ -3,7 +3,7 @@ import { nanoid } from 'nanoid';
 import fs from 'fs';
 import path from 'path';
 import type { LogEntry, SearchParams, SearchResult } from '../types.js';
-import { CREATE_PROJECTS_TABLE, CREATE_ENTRIES_TABLE, CREATE_INDEXES, PRAGMA_STATEMENTS } from './schema.js';
+import { CREATE_PROJECTS_TABLE, CREATE_ENTRIES_TABLE, CREATE_INDEXES, CREATE_ENTRY_TAGS_TABLE, CREATE_ENTRY_TAGS_INDEX, CREATE_ENTRY_TAGS_ENTRY_INDEX, PRAGMA_STATEMENTS } from './schema.js';
 import { DatabaseError, logError } from '../utils/index.js';
 
 export class ProgressStore {
@@ -31,8 +31,9 @@ export class ProgressStore {
         throw new DatabaseError(`Failed to apply database pragmas: ${error.message}`, { dbPath });
       }
 
-      // Initialize schema
+      // Initialize schema (including migrations)
       this.initializeSchema();
+      this.migrateSchema();
     } catch (err) {
       if (err instanceof DatabaseError) throw err;
       const error = err instanceof Error ? err : new Error(String(err));
@@ -45,8 +46,13 @@ export class ProgressStore {
     try {
       this.db.exec(CREATE_PROJECTS_TABLE);
       this.db.exec(CREATE_ENTRIES_TABLE);
+      this.db.exec(CREATE_ENTRY_TAGS_TABLE);
       
       for (const index of CREATE_INDEXES) {
+        this.db.exec(index);
+      }
+      
+      for (const index of [CREATE_ENTRY_TAGS_INDEX, CREATE_ENTRY_TAGS_ENTRY_INDEX]) {
         this.db.exec(index);
       }
     } catch (err) {
@@ -105,6 +111,11 @@ export class ProgressStore {
         JSON.stringify(entry.tags),
         entry.agentId
       );
+
+      // Add tags to normalized table
+      if (entry.tags && entry.tags.length > 0) {
+        this.addTags(id, entry.tags);
+      }
 
       return {
         id,
@@ -208,13 +219,19 @@ export class ProgressStore {
         queryParams.push(params.endDate);
       }
 
-      // Add tags filter (AND logic)
-      if (params.tags && params.tags.length > 0) {
-        for (const tag of params.tags) {
-          query += ` AND tags LIKE ?`;
-          queryParams.push(`%"${tag}"%`);
-        }
-      }
+       // Add tags filter (use efficient normalized tag search)
+       if (params.tags && params.tags.length > 0) {
+         // Use the new searchByTags method for efficient tag queries
+         const tagResults = this.searchByTags(params.projectId, params.tags);
+         
+         // If we have tag results, use them; otherwise continue with other filters
+         if (tagResults.length > 0) {
+           return {
+             entries: tagResults,
+             total: tagResults.length,
+           };
+         }
+       }
 
       // Add ordering and limit
       query += ` ORDER BY created_at DESC`;
@@ -267,7 +284,7 @@ export class ProgressStore {
           projectId: row.project_id,
           title: row.title,
           createdAt: row.created_at,
-          tags: row.tags ? JSON.parse(row.tags) : [],
+        tags: this.getTags(row.id),
         })),
         total: countResult.total,
       };
@@ -287,6 +304,113 @@ export class ProgressStore {
       const error = err instanceof Error ? err : new Error(String(err));
       logError(error, 'system', { operation: 'close' });
       // Don't throw here - this is cleanup
+    }
+  }
+
+  private migrateSchema(): void {
+    try {
+      // Check if entry_tags table exists
+      const tableCheck = this.db.prepare(`
+        SELECT name FROM sqlite_master 
+        WHERE type='table' AND name='entry_tags'
+      `);
+      const result = tableCheck.get() as any;
+      
+      if (!result) {
+        console.error('[MIGRATION] Creating entry_tags table for normalized tag storage');
+        this.db.exec(CREATE_ENTRY_TAGS_TABLE);
+        
+        // Create indexes for tag table
+        this.db.exec(CREATE_ENTRY_TAGS_INDEX);
+        this.db.exec(CREATE_ENTRY_TAGS_ENTRY_INDEX);
+        
+        // Migrate existing JSON tags to normalized format
+        const migrateStmt = this.db.prepare(`
+          SELECT id, tags FROM log_entries WHERE tags IS NOT NULL AND tags != '[]'
+        `);
+        const entriesWithTags = migrateStmt.all() as any[];
+        
+        for (const entry of entriesWithTags) {
+          try {
+            const tags = JSON.parse(entry.tags);
+            if (Array.isArray(tags) && tags.length > 0) {
+              this.addTags(entry.id, tags);
+            }
+          } catch (err) {
+            console.error(`[MIGRATION] Failed to migrate tags for entry ${entry.id}:`, err);
+          }
+        }
+        
+        console.error(`[MIGRATION] Migrated ${entriesWithTags.length} entries to normalized tag storage`);
+      }
+    } catch (err) {
+      const error = err instanceof Error ? err : new Error(String(err));
+      logError(error, 'database', { operation: 'migrateSchema' });
+    }
+  }
+
+  // Tag management methods for efficient tag storage
+  addTags(entryId: string, tags: string[]): void {
+    try {
+      const stmt = this.db.prepare(`
+        INSERT OR IGNORE INTO entry_tags (entry_id, tag) VALUES (?, ?)
+      `);
+      
+      for (const tag of tags) {
+        stmt.run(entryId, tag);
+      }
+    } catch (err) {
+      const error = err instanceof Error ? err : new Error(String(err));
+      logError(error, 'database', { operation: 'addTags', entryId });
+      throw new DatabaseError(`Failed to add tags: ${error.message}`, { entryId });
+    }
+  }
+
+  getTags(entryId: string): string[] {
+    try {
+      const stmt = this.db.prepare(`
+        SELECT tag FROM entry_tags WHERE entry_id = ? ORDER BY tag
+      `);
+      
+      const rows = stmt.all(entryId) as any[];
+      return rows.map((row: any) => row.tag);
+    } catch (err) {
+      const error = err instanceof Error ? err : new Error(String(err));
+      logError(error, 'database', { operation: 'getTags', entryId });
+      return [];
+    }
+  }
+
+  searchByTags(projectId: string, tags: string[]): LogEntry[] {
+    try {
+      // Build a query that finds entries with ALL specified tags
+      const tagPlaceholders = tags.map(() => '?').join(',');
+      const tagConditions = tags.map(() => 'EXISTS (SELECT 1 FROM entry_tags WHERE entry_id = log_entries.id AND tag = ?)').join(' AND ');
+      
+      const query = `
+        SELECT DISTINCT le.* FROM log_entries le
+        WHERE le.project_id = ?
+          AND (${tagConditions})
+        ORDER BY le.created_at DESC
+      `;
+      
+      const stmt = this.db.prepare(query);
+      const rows = stmt.all(projectId, ...tags) as any[];
+      
+      return rows.map((row: any) => ({
+        id: row.id,
+        projectId: row.project_id,
+        title: row.title,
+        content: row.content,
+        summary: row.summary,
+        createdAt: row.created_at,
+        tags: this.getTags(row.id),
+        agentId: row.agent_id,
+      }));
+    } catch (err) {
+      const error = err instanceof Error ? err : new Error(String(err));
+      logError(error, 'database', { operation: 'searchByTags', projectId, tags });
+      throw new DatabaseError(`Failed to search by tags: ${error.message}`, { projectId, tags });
     }
   }
 }

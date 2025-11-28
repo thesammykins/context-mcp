@@ -385,7 +385,7 @@ export class ProgressStore {
     try {
       // Build a query that finds entries with ALL specified tags
       const tagPlaceholders = tags.map(() => '?').join(',');
-      const tagConditions = tags.map(() => 'EXISTS (SELECT 1 FROM entry_tags WHERE entry_id = log_entries.id AND tag = ?)').join(' AND ');
+      const tagConditions = tags.map(() => 'EXISTS (SELECT 1 FROM entry_tags WHERE entry_id = le.id AND tag = ?)').join(' AND ');
       
       const query = `
         SELECT DISTINCT le.* FROM log_entries le

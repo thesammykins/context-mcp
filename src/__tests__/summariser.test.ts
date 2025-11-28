@@ -137,7 +137,7 @@ describe('summariser', () => {
     const summariser = new Summariser(config);
     const result = await summariser.summarise('Test Title', longContent);
 
-    expect(result.summary).toHaveLength(500);
+    expect(result.summary).toHaveLength(303); // 300 chars + '...' = 303
     expect(result.isFallback).toBe(true);
   });
 

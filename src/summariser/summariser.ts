@@ -13,15 +13,15 @@ const LLM_TIMEOUT_MS = 30_000; // 30 second timeout for LLM API calls
 function createFallbackSummary(title: string, content: string): string {
   // Extract key information from content
   const sentences = content.split(/[.!?]+/).filter(s => s.trim().length > 0);
-  
+
   if (sentences.length === 0) {
-    return content.substring(0, FALLBACK_MAX_LENGTH);
+    return content.substring(0, FALLBACK_MAX_LENGTH) + (content.length > FALLBACK_MAX_LENGTH ? '...' : '');
   }
-  
+
   // Try to create a meaningful summary from first few sentences
   let summary = '';
   let usedChars = 0;
-  
+
   for (const sentence of sentences) {
     if (usedChars + sentence.length + 1 <= FALLBACK_MAX_LENGTH) {
       summary += sentence.trim() + '. ';
@@ -30,7 +30,7 @@ function createFallbackSummary(title: string, content: string): string {
       break;
     }
   }
-  
+
   // If still too short, add key context
   if (summary.length < 100 && content.length > 200) {
     // Look for key technical terms
@@ -42,7 +42,12 @@ function createFallbackSummary(title: string, content: string): string {
       }
     }
   }
-  
+
+  // If we still have no summary content, fall back to truncating the original content
+  if (summary.trim().length === 0) {
+    return content.substring(0, FALLBACK_MAX_LENGTH) + (content.length > FALLBACK_MAX_LENGTH ? '...' : '');
+  }
+
   return summary.trim() + (content.length > FALLBACK_MAX_LENGTH ? '...' : '');
 }
 

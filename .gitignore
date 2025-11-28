@@ -11,3 +11,8 @@ coverage/
 *.db
 *.sqlite
 *.sqlite3
+agent-progress.config.json
+*.tsbuildinfo
+.npm/
+.vscode/
+.idea/
